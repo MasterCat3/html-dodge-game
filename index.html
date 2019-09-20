@@ -99,7 +99,7 @@
             
             //Function to interpret and use user input for game speed
             var setGameSpeed = function() {
-                var returnValue = parseInt(prompt("Please enter a number between 3 and 25 to set the speed of the game (The default is 6", 6));
+                var returnValue = parseInt(prompt("Please enter a number between 3 and 25 to set the speed of the game (The default is 6) ", 6));
                   if (returnValue < 3 || returnValue > 25) {
                     alert("Your number is outside the specified range of 3 to 25. Please try again.");
                 } else if (returnValue >= 3 && returnValue <= 25) {
@@ -112,7 +112,7 @@
             
             // Function to interpret and use user input for number of blocks
             var setNumberOfBlocks = function() {
-                var returnValue = parseInt(prompt("Please enter a number between 3 and 60 to set the maximum number of red blocks at a time (The default is 25", "25"));
+                var returnValue = parseInt(prompt("Please enter a number between 3 and 60 to set the maximum number of red blocks at a time (The default is 25) ", "25"));
                 if (returnValue < 3 || returnValue > 60) {
                     alert("Your number is outside the specified range of 3 to 60. Please try again.");
                 } else if (returnValue >= 3 && returnValue <= 60) {
