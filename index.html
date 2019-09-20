@@ -303,6 +303,11 @@
             var draw = function() {
                 scenes[scene]();
                 requestAnimationFrame(draw);
+                
+                //Handling mouse control
+                canvas.addEventListener("mousedown", function(event) {
+                    player.x = event.clientX;
+                });
             };
             requestAnimationFrame(draw);
             
@@ -357,10 +362,7 @@
                     }
             });
             
-            //Handling mouse control
-            canvas.addEventListener("mousedown", function(event) {
-                player.x = event.clientX;
-            });
+            
             
             // Handling key presses
             document.addEventListener("keydown", function(event) {
