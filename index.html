@@ -149,7 +149,7 @@
                 redBlocks.push(new Vector(-50, height));
             };
             var highScores = [
-                ["Happy Snowman", 134, 5],
+                ["Happy Snowman", 134, 5, 20],
                 ["ABoss", 23, 5],
                 ["Henwill8", 72, 5],
                 ["Vader2003", 100, 5]
@@ -281,7 +281,7 @@
                     ctx.font = "20px sans-serif";
                     ctx.textAlign = "left";
                     for(var i = 0; i < highScores.length; i++) {
-                        ctx.fillText(highScores[i][0] + ": " + highScores[i][1] + ", speed=" + highScores[i][2], 10, (i+2)*40);
+                        ctx.fillText(highScores[i][0] + ": " + highScores[i][1] + ", speed=" + highScores[i][2] + " number of blocks = " + highScores[i][2], 10, (i+2)*40);
                     }
                     backButton.draw();
                     ctx.restore();
