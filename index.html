@@ -310,15 +310,15 @@
             // Code to be run 60 times per seconds(Or as many FPS as the device allows)
             var draw = function() {
                 scenes[scene]();
-                document.body.onmousedown = function() { 
-                    ++mouseDown;
-                };
-                document.body.onmouseup = function() {
-                    --mouseDown;
-                };
-                if (mouseDown) {
-                    player.x = event.clientX;
-                };
+                //<!-- document.body.onmousedown = function() { 
+                    //++mouseDown;
+                //};
+                //document.body.onmouseup = function() {
+                  //  --mouseDown;
+                //};
+                //if (mouseDown) {
+                  //  player.x = event.clientX;
+                //}; -->
                 requestAnimationFrame(draw);
             };
             requestAnimationFrame(draw);
