@@ -130,7 +130,14 @@
                 
                 
                 
+                
+                
             };
+            
+            
+            // Code to detect if the mouse is down or up
+            var mouseDown = 0;
+
             
             // A few buttons
             var playButton = new Button(width/2, 250, "  Play  ", "blue", "orange");
@@ -299,17 +306,22 @@
                 }
             };
             
+            
             // Code to be run 60 times per seconds(Or as many FPS as the device allows)
             var draw = function() {
                 scenes[scene]();
-                requestAnimationFrame(draw);
-                
-                //Handling mouse control
-                canvas.addEventListener("mousedown", function(event) {
+                document.body.onmousedown = function() { 
+                    ++mouseDown;
+                };
+                document.body.onmouseup = function() {
+                    --mouseDown;
+                };
+                if (mouseDown) {
                     player.x = event.clientX;
-                });
+                };
+                requestAnimationFrame(draw);
             };
-            requestAnimationFrame(draw);
+
             
             // Handing button collisions
             canvas.addEventListener("click", function(event) {
