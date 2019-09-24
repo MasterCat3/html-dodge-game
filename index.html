@@ -1,8 +1,5 @@
 <!DOCTYPE html>
 
-<!-- If the game is too fast or too slow for you, just change the gameSpeed variable at the beginning of the <script> tag -->
-
-
 <!--
     Released on: April 30th 2017
     Last Updated: September 18th 2019
@@ -31,9 +28,9 @@
     <body>
         <canvas id="canvas" width="550" height="550"></canvas>
         <script>
+         
             
-            var gameSpeed = 6; // Change this to make the game run faster or slower
-            var numberOfBlocks = 25; //This sets the maximum number of blocks that can be around at the same time (More is harder)
+            // Setting Up Canvas with Javascript
             {
                 var canvas = document.getElementById("canvas");
                 canvas.width = window.innerWidth * 0.98;
@@ -42,10 +39,10 @@
                 var width = canvas.getAttribute("width");
                 var height = canvas.getAttribute("height");
                 var setBackgroundColor = function(color) {
-                    var fillStyle = ctx.fillStyle;
-                    ctx.fillStyle = color;
-                    ctx.fillRect(0, 0, width, height);
-                    ctx.fillStyle = fillStyle;
+                var fillStyle = ctx.fillStyle;
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = fillStyle;
                 };
                 var rangedRandom = function(low, high) {
                     return Math.random() * (high - low) + low;
@@ -68,7 +65,18 @@
                     this.x = xpos;
                     this.y = ypos;
                 };
-            } // Set of useful functions
+                
+                // Key Game Variables
+            var initialNumberOfBlocks = Math.round(canvas.width/100 * 1.7);  // The inital number of blocks
+            
+            var gameSpeed = 6; // Change this to make the game run faster or slower
+            var numberOfBlocks = initialNumberOfBlocks; //This sets the maximum number of blocks that can be around at the same time (More is harder)
+                
+            
+            
+            }; 
+            
+            // Set of useful functions
             
             var Button = function(x, y, txt, color, txtcolor) {
                 this.x = x;
@@ -136,7 +144,7 @@
             
             
             // Code to detect if the mouse is down or up
-            var mouseDown = 0;
+            var mouseIsDown = false;
 
             
             // A few buttons
@@ -242,7 +250,8 @@
                         } else {
                             player.x += gameSpeed;
                         }
-                    }
+                    };
+                    
                     if(new Date().getTime() >= now + 1000) {
                         now = new Date().getTime();
                         score += gameSpeed/5;
@@ -310,19 +319,23 @@
             // Code to be run 60 times per seconds(Or as many FPS as the device allows)
             var draw = function() {
                 scenes[scene]();
-                //<!-- document.body.onmousedown = function() { 
-                    //++mouseDown;
-                //};
-                //document.body.onmouseup = function() {
-                  //  --mouseDown;
-                //};
-                //if (mouseDown) {
-                  //  player.x = event.clientX;
-                //}; -->
                 requestAnimationFrame(draw);
             };
             requestAnimationFrame(draw);
 
+            
+            //Handling Mouse controls
+            canvas.addEventListener("mousedown", function() {
+                mouseIsDown = true;
+            });
+            canvas.addEventListener("mouseup", function() {
+                mouseIsDown = false;
+            });
+            canvas.addEventListener("mousemove", function(event) {
+                if(mouseIsDown) {
+                    player.x = event.clientX;
+                };
+            });
             
             // Handing button collisions
             canvas.addEventListener("click", function(event) {
