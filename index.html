@@ -337,6 +337,21 @@
                 };
             });
             
+            //Handling Touch Events(experimental)
+            canvas.addEventListener("touchstart", function(event) {
+                if (scene === "play") {
+                    player.x = event.changedTouches[0].clientX;
+                    event.preventDefault();
+                };
+            });
+            canvas.addEventListener("touchmove", function(event) {
+                if (scene === "play") {
+                    player.x = event.changedTouches[0].clientX;
+                    event.preventDefault();
+                };
+            });
+            
+            
             // Handing button collisions
             canvas.addEventListener("click", function(event) {
                     if(scene === "menu") {
