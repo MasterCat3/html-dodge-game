@@ -371,7 +371,7 @@
                             scene = "menu";
                         }
                     } else if(scene === "lose") {
-                        if(retryButton.mouseIsInside(event) || keysPressed[82]) {
+                        if(retryButton.mouseIsInside(event)) {
                             score = 0;
                             player.x = width/2;
                             for(var i = 0; i < redBlocks.length; i++) {
