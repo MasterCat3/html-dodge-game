@@ -406,6 +406,15 @@
             // Handling key presses
             document.addEventListener("keydown", function(event) {
                 keysPressed[event.keyCode] = true;
+                if(keysPressed[82] && scene === "lose") { // this is the code for restarting when you hit the key "r"
+                    score = 0;
+                    player.x = width/2;
+                    for(var i = 0; i < redBlocks.length; i++) {
+                        redBlocks[i].x = -50;
+                        redBlocks[i].y = height;
+                    };
+                    scene = "play";
+                };
             });
             document.addEventListener("keyup", function(event) {
                 keysPressed[event.keyCode] = false;
