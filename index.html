@@ -27,7 +27,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="apple-touch-icon-precomposed" href="apple-touch-favicon.png">
         <link rel="icon" href="favicon.ico">
-        <title>Dodge 'n Collect</title>
+        <title>HTML Dodge Game</title>
     </head>
     
     <body>
@@ -38,8 +38,8 @@
             // Setting Up Canvas with Javascript
             {
                 var canvas = document.getElementById("canvas");
-                canvas.height = window.innerHeight * 0.98;
                 canvas.width = window.innerWidth * 0.98;
+                canvas.height = window.innerHeight * 0.98;
                 var ctx = canvas.getContext("2d");
                 var width = canvas.getAttribute("width");
                 var height = canvas.getAttribute("height");
@@ -73,8 +73,6 @@
                     if(fill) ctx.fill();
                     else ctx.stroke();
                 };
-                
-                
                 var color = function(r, g, b, a) {
                     if(a === undefined) {
                         return "rgb(" + r + "," + g + "," + b + ")";
@@ -83,20 +81,16 @@
                         return "rgba(" + r + "," + g + "," + b + "," + a + ")";
                     }
                 };
-                var Vector = function(xpos, ypos, xMoveRate, yMoveRate) {
+                var Vector = function(xpos, ypos) {
                     this.x = xpos;
                     this.y = ypos;
-                    this.xMoveRate = xMoveRate;
-                    this.yMoveRate = yMoveRate;
                 };
                 
                 // Key Game Variables
-            var initialNumberOfBlocks = Math.round(canvas.width/100 / 2);  // The inital number of blocks
+            var initialNumberOfBlocks = Math.round(canvas.width/100 * 1.7);  // The inital number of blocks
             
             var gameSpeed = 6; // Change this to make the game run faster or slower
             var numberOfBlocks = initialNumberOfBlocks; //This sets the maximum number of blocks that can be around at the same time (More is harder)
-                
-            var darkMode = true; // Activates and deactivates dark mode
                 
             
             
@@ -187,9 +181,9 @@
             
             // A few buttons
             var playButton = new Button(width/2, height/2 - 110, "  Play  ", "blue", "orange");
-            //var levelsButton = new Button(width/2, height/2 - 10, "  Levels  ", "blue", "orange");
-            var howButton = new Button(width/2, height/2 -10, "   How  ", "blue", "orange");
-            //var gameControlsButton = new Button(width/2, height/2 + 90 , " Game Controls ", "blue", "orange");
+            var levelsButton = new Button(width/2, height/2 - 10, "  Levels  ", "blue", "orange");
+            var howButton = new Button(width/2, height/2 + 90, "   How  ", "blue", "orange");
+            var gameControlsButton = new Button(width/2, height/2 + 190 , " Game Controls ", "blue", "orange");
             var backButton = new Button(60, height-50, "  Back  ", "blue", "orange");
             var retryButton = new Button(60, height-50, "  Retry  ", "blue", "orange");
             var backButtonFromLoseScreen = new Button(60, height-125, "  Back  ", "blue", "orange");
@@ -209,7 +203,7 @@
             // Game variables
             var redBlocks = [];
             for(var i = 0; i < numberOfBlocks; i++) {
-                redBlocks.push(new Vector(width/2, height/2, rangedRandom(-5, 5), rangedRandom(-5, 5)));
+                redBlocks.push(new Vector(-50, height));
             };
             var highScores = [
                 ["Happy Snowman", 134, 5, 20],
@@ -224,11 +218,10 @@
             var keysPressed = [];
             var player = {
                 x: width/2,
-                y: height - 40,
                 draw: function() {
                     ctx.save();
                     ctx.fillStyle = "blue";
-                    ctx.fillRect(this.x-40, this.y, 40, 40);
+                    ctx.fillRect(this.x-40, height-40, 40, 40);
                     ctx.restore();
                 },
             };
@@ -289,25 +282,6 @@
                 scene = "play";
             }
             
-            var Coin = function(x, y, r) {
-                this.x = x;
-                this.y = y;
-                this.r = r;
-                this.draw = function() {
-                    ctx.save();
-                    ctx.fillStyle = "orange";
-                    circle(this.x, this.y, this.r, true);
-                    ctx.restore();
-                }
-            };
-            
-            var coin = new Coin(rangedRandom(20, width - 20), rangedRandom(40, height - 20), 10);
-            var moveCoin = function() {
-                coin.x = rangedRandom(20, width - 20);
-                coin.y = rangedRandom(20, height - 20);
-                score += 1;
-            }
-            
             // Scenes
             var logoProgress = 0;
             var scenes = {
@@ -337,25 +311,20 @@
                         ctx.font = "30px cursive";
                         var titleTextX = 50;
                     };
-                    ctx.fillText("Dodge 'n Collect", width/2, titleTextX);
+                    ctx.fillText("HTML Dodge Game", width/2, titleTextX);
                     ctx.save();
                     playButton.draw();
                     howButton.draw();
-                    //gameControlsButton.draw();
-                    //levelsButton.draw();
+                    gameControlsButton.draw();
+                    levelsButton.draw();
                     ctx.restore();
                 },
                 play: function() {
                     ctx.save();
-                    if(darkMode === true) {
-                        setBackgroundColor(color(0, 0, 0));
-                    } else {
-                        setBackgroundColor(color(255, 255, 255));
-                    };
-                    coin.draw();
+                    setBackgroundColor(color(0, 0, 0));
                     ctx.textAlign = "center";
                     ctx.fillStyle = "white";
-                    var textSize = canvas.width / 100 * 4;
+                    var textSize = initialNumberOfBlocks * 2.5;
                     if(textSize > 30) {textSize = 30};
                     ctx.font = textSize + "px sans-serif";
                     ctx.fillText(Math.round(score), width/2, 1.5 * textSize);
@@ -365,70 +334,39 @@
                     for(var i = 0; i < redBlocks.length; i++) {
                         ctx.save();
                         ctx.fillStyle = "red";
-                        
-                        redBlocks[i].x += redBlocks[i].xMoveRate;
-                        redBlocks[i].y += redBlocks[i].yMoveRate;
-                        
-                        // Handling red block collisions with the wall and adjusting the x/y move rate
-                        if(redBlocks[i].y >= height) {
-                            redBlocks[i].yMoveRate = rangedRandom(-5, 0);
-                        } else if(redBlocks[i].y <= 40) {
-                            redBlocks[i].yMoveRate = rangedRandom(0, 5);
-                        };
-                        if(redBlocks[i].x >= width) {
-                            redBlocks[i].xMoveRate = rangedRandom(-5, 0);
-                        } else if(redBlocks[i].x <= 40) {
-                            redBlocks[i].xMoveRate = rangedRandom(0, 5);
-                        };
-                        
-        
-                        if(redBlocks[i].x >= player.x-40 && redBlocks[i].x <= player.x+40 && redBlocks[i].y >= player.y && redBlocks[i].y <= player.y + 80) {
+                        redBlocks[i].y += gameSpeed;
+                        if(redBlocks[i].y > height) {
+                            redBlocks[i].x = rangedRandom(0, width);
+                            redBlocks[i].y = rangedRandom(-500, 0);
+                        }
+                        if(redBlocks[i].y >= height-40 && redBlocks[i].x >= player.x-40 && redBlocks[i].y <= height && redBlocks[i].x <= player.x+40) {
                             scene = "lose";
                         };
                         
                         ctx.fillRect(redBlocks[i].x-40, redBlocks[i].y-40, 40, 40);
-                        
-                        // Handling player and coin collisions
-                        var distX = Math.abs(coin.x - player.x-(40/2-40));
-                        var distY = Math.abs(coin.y - player.y-40/2);
-
-                        if (distX > (40/2 + coin.r)) {}
-                        if (distY > ((40/2-40) + coin.r)) {}
-
-                        if (distX <= (40/2) && distY <= (40/2)) { moveCoin();} 
-
-                        var dx=distX-40/2;
-                        var dy=distY-(40/2);
-                        if(dx*dx+dy*dy<=(coin.r*coin.r)) {
-                            moveCoin();
-                        }
                         ctx.restore();
-                    };
+                    }
                     
-                    // Handling arrow keys and block movement
-                    if(keysPressed[37] || keysPressed[65]) {
-                        if(player.x > 40) {
-                            player.x -= 5;
-                        };
-                    };
-                    if(keysPressed[39] || keysPressed[68]) {
-                        if(player.x < width) {
-                            player.x += 5;
+                    if(keysPressed[37]) {
+                        if(player.x < 0) {
+                            player.x = width;
+                        }
+                        else {
+                            player.x -= gameSpeed;
+                        }
+                    }
+                    if(keysPressed[39]) {
+                        if(player.x > width) {
+                            player.x = 40;
+                        } else {
+                            player.x += gameSpeed;
                         }
                     };
-                    if(keysPressed[38] || keysPressed[87]) {
-                        if(player.y > 0) {
-                            player.y -= 5;
-                        };
-                    };
-                    if(keysPressed[40] || keysPressed[83]) {
-                        if(player.y < height - 40) {
-                            player.y += 5;
-                        }
-                        
-                    };
                     
-                    
+                    if(new Date().getTime() >= now + 1000 * initialNumberOfBlocks / numberOfBlocks) {
+                        now = new Date().getTime();
+                        score += gameSpeed/6;
+                    }
                     player.draw();
                     ctx.restore();
                 },
@@ -442,9 +380,9 @@
                     ctx.fillStyle = "black";
                     ctx.fillText("You are the blue block. Move", width/2, height/2);
                     ctx.fillText("around with the arrow keys", width/2, height/2+fontSize*1.25);
-                    ctx.fillText("or drag your mouse or finger", width/2, height/2+fontSize*2.5);
-                    ctx.fillText("and dodge the red blocks", width/2, height/2+fontSize*3.75);
-                    ctx.fillText("and collect the yellow coins.", width/2, height/2+fontSize*5);
+                    ctx.fillText("or mouse on computer", width/2, height/2+fontSize*2.5);
+                    ctx.fillText("or with your finger on mobile", width/2, height/2+fontSize*3.75);
+                    ctx.fillText("and try to avoid the red blocks.", width/2, height/2+fontSize*5);
                     ctx.save();
                     backButton.draw();
                     ctx.restore();
@@ -453,30 +391,26 @@
                     ctx.save();
                     ctx.textAlign = "center";
                     setBackgroundColor(color(255, 69, 69));
-                    var fontSize = canvas.width / 100 * 4;
-                    if(fontSize >= 50) {fontSize = 50};
+                    var fontSize = initialNumberOfBlocks*2;
+                    if(fontSize > 35) {fontSize = 35};
                     ctx.font = fontSize + "px sans-serif";
                     ctx.save();
                     ctx.translate(0, -150);
-                    ctx.fillText("Congratulations!", width/2, height/2);
-                    ctx.fillText("You got " + score + " points!", width/2, height/2 + fontSize*1.25);
-                    ctx.fillText("Click the retry button to play again.", width/2, height/2+fontSize*2.5);
+                    ctx.fillText("A red block fell on your head and", width/2, height/2);
+                    ctx.fillText("you never wanted to dodge red blocks", width/2, height/2 + fontSize*1.25);
+                    ctx.fillText("again. At least not until you clicked", width/2, height/2+fontSize*2.5);
+                    ctx.fillText("that retry button...", width/2, height/2+fontSize*3.75);
+                    ctx.fillText("Your score: " + Math.round(score), width/2, height/2+fontSize*5);
+                    if(level === 0) {
+                        ctx.fillText("You played the game at a speed of " + gameSpeed, width/2, height/2+fontSize*6.25);
+                        ctx.fillText(" and with " + numberOfBlocks + " blocks.", width/2, height/2+fontSize*7.75);
+                    } else {
+                        ctx.fillText("You played level " + level + ".", width/2, height/2+fontSize*6.25);
+                    }
                     ctx.restore();
                     retryButton.draw();
                     backButtonFromLoseScreen.draw();
                     ctx.restore();
-                    if(keysPressed[82]) {
-                        score = 0;
-                        player.x = width/2;
-                        player.y = height - 40;
-                        for(var i = 0; i < redBlocks.length; i++) {
-                            redBlocks[i].x = width/2;
-                            redBlocks[i].y = height/2;
-                            redBlocks[i].xMoveRate = rangedRandom(-5, 5);
-                            redBlocks[i].yMoveRate = rangedRandom(-5, 5);
-                        };
-                        scene = "play";
-                    };
                 },
                 gameControls: function() {
                     ctx.fillStyle = "blue"; ctx.font = "30px sans-serif"; ctx.fillText(numberOfBlocks, 100, 100);
@@ -506,6 +440,7 @@
                 },
             };
             
+            
             // Code to be run 60 times per seconds(Or as many FPS as the device allows)
             var draw = function() {
                 scenes[scene]();
@@ -524,7 +459,6 @@
             canvas.addEventListener("mousemove", function(event) {
                 if(mouseIsDown) {
                     player.x = event.clientX;
-                    player.y = event.clientY - 20;
                 };
             });
             
@@ -532,14 +466,12 @@
             canvas.addEventListener("touchstart", function(event) {
                 if (scene === "play") {
                     player.x = event.changedTouches[0].clientX;
-                    player.y = event.changedTouches[0].clientY - 20;
                     event.preventDefault();
                 };
             });
             canvas.addEventListener("touchmove", function(event) {
                 if (scene === "play") {
                     player.x = event.changedTouches[0].clientX;
-                    player.y = event.changedTouches[0].clientY - 20;
                     event.preventDefault();
                 };
             });
@@ -550,14 +482,12 @@
                     if(scene === "menu") {
                         if(playButton.mouseIsInside(event)) {
                             scene = "play";
-                            player.x = width/2;
-                            player.y = height - 40;
                         } else if(howButton.mouseIsInside(event)) {
                             scene = "how";
                         } else if(gameControlsButton.mouseIsInside(event)) {
-                            
+                            scene = "gameControls"
                         } else if(levelsButton.mouseIsInside(event)) {
-                            
+                            scene = "levelsPage1";      
                         }
                     } else if(scene === "how") {
                         if(backButton.mouseIsInside(event)) {
@@ -567,12 +497,9 @@
                         if(retryButton.mouseIsInside(event)) {
                             score = 0;
                             player.x = width/2;
-                            player.y = height - 40;
                             for(var i = 0; i < redBlocks.length; i++) {
-                                redBlocks[i].x = width/2;
-                                redBlocks[i].y = height/2;
-                                redBlocks[i].xMoveRate = rangedRandom(-5, 5);
-                                redBlocks[i].yMoveRate = rangedRandom(-5, 5);
+                                redBlocks[i].x = -50;
+                                redBlocks[i].y = height;
                             }
                             scene = "play";
                         } else if(backButtonFromLoseScreen.mouseIsInside(event)) {
@@ -582,15 +509,13 @@
                                 numberOfBlocks = initialNumberOfBlocks;
                                 level = 0;
                             }
+                            gameSpeed = 6;
                             numberOfBlocks = initialNumberOfBlocks;
                             player.x = width/2;
-                            player.y = height-40;
                             for(var i = 0; i < redBlocks.length; i++) {
-                                redBlocks[i].x = width/2;
-                                redBlocks[i].y = height/2;
-                                redBlocks[i].xMoveRate = rangedRandom(-5, 5);
-                                redBlocks[i].yMoveRate = rangedRandom(-5, 5);
-                            };
+                                redBlocks[i].x = -50;
+                                redBlocks[i].y = height;
+                            }
                             scene = "menu";
                         }
                     } else if (scene === "gameControls") {
@@ -632,7 +557,7 @@
             // Handling key presses
             document.addEventListener("keydown", function(event) {
                 keysPressed[event.keyCode] = true;
-                if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 82 || event.keyCode === 83 || event.keyCode === 87 || event.keyCode === 65 || event.keyCode === 68) {
+                if (event.keyCode === 39 || event.keyCode === 37) {
                     event.preventDefault();
                 };
             });
