@@ -5,7 +5,7 @@
 
 <!--
     Released on: April 30th 2017
-    Last Updated: September 25th 2019
+    Last Updated: May 6th, 2020
     Improvements made since release: (
         Made logo shorter
         Made the x position of the player reset itself after the "Retry" button is pressed
@@ -27,19 +27,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="apple-touch-icon-precomposed" href="apple-touch-favicon.png">
         <link rel="icon" href="favicon.ico">
-        <title>HTML Dodge Game</title>
+        <title>Dodge 'n Collect</title>
+        
+        <style>
+            html, body {
+                overflow: hidden;
+            }
+        </style>
     </head>
     
     <body>
         <canvas id="canvas" width="550" height="550"></canvas>
         <script>
-         
             
             // Setting Up Canvas with Javascript
             {
                 var canvas = document.getElementById("canvas");
-                canvas.width = window.innerWidth * 0.98;
-                canvas.height = window.innerHeight * 0.98;
+                canvas.height = window.innerHeight;
+                canvas.width = window.innerWidth;
                 var ctx = canvas.getContext("2d");
                 var width = canvas.getAttribute("width");
                 var height = canvas.getAttribute("height");
@@ -73,6 +78,8 @@
                     if(fill) ctx.fill();
                     else ctx.stroke();
                 };
+                
+                
                 var color = function(r, g, b, a) {
                     if(a === undefined) {
                         return "rgb(" + r + "," + g + "," + b + ")";
@@ -81,16 +88,21 @@
                         return "rgba(" + r + "," + g + "," + b + "," + a + ")";
                     }
                 };
-                var Vector = function(xpos, ypos) {
+                var Vector = function(xpos, ypos, xMoveRate, yMoveRate) {
                     this.x = xpos;
                     this.y = ypos;
+                    this.xMoveRate = xMoveRate;
+                    this.yMoveRate = yMoveRate;
                 };
                 
+                
                 // Key Game Variables
-            var initialNumberOfBlocks = Math.round(canvas.width/100 * 1.7);  // The inital number of blocks
-            
-            var gameSpeed = 6; // Change this to make the game run faster or slower
-            var numberOfBlocks = initialNumberOfBlocks; //This sets the maximum number of blocks that can be around at the same time (More is harder)
+                var initialNumberOfBlocks = Math.round(canvas.width/100 / 2);  // The inital number of blocks
+
+                var gameSpeed = 5; // Change this to make the game run faster or slower
+                var numberOfBlocks = initialNumberOfBlocks; //This sets the maximum number of blocks that can be around at the same time (More is harder)
+
+                var darkMode = true; // Activates and deactivates dark mode
                 
             
             
@@ -149,143 +161,169 @@
                 };
             };
             
-            // Function to interpret and use user input for number of blocks
-            var setNumberOfBlocks = function() {
-                var returnValue = parseInt(prompt("Please enter a number between 3 and 60 to set the maximum number of red blocks at a time (The default is " + initialNumberOfBlocks + ")", initialNumberOfBlocks));
-                if (returnValue < 3 || returnValue > 60) {
-                    alert("Your number is outside the specified range of 3 to 60. Please try again.");
-                } else if (returnValue >= 3 && returnValue <= 60) {
-                    numberOfBlocks = returnValue;
-                    alert("Number Of Blocks has been set to " + numberOfBlocks);
-                    redBlocks = [];
-                    for (var i = 0; i < numberOfBlocks; i++) {
-                        redBlocks.push(new Vector(-50, height));
-                    }
-                } else {
-                    alert("Invalid input. Please try again.");
-                };
-                
-                
-                
-                
-                
-                
-                
-            };
-            
-            
-            
             // Code to detect if the mouse is down or up
             var mouseIsDown = false;
 
             
-            // A few buttons
+            
             var playButton = new Button(width/2, height/2 - 110, "  Play  ", "blue", "orange");
-            var levelsButton = new Button(width/2, height/2 - 10, "  Levels  ", "blue", "orange");
             var howButton = new Button(width/2, height/2 + 90, "   How  ", "blue", "orange");
-            var gameControlsButton = new Button(width/2, height/2 + 190 , " Game Controls ", "blue", "orange");
+            var levelsButton = new Button(width/2, height/2 - 10, "  Levels  ", "blue", "orange");
+            var gameControlsButton = new Button(width/2, height/2 + 90 , " Game Controls ", "blue", "orange");
             var backButton = new Button(60, height-50, "  Back  ", "blue", "orange");
-            var retryButton = new Button(60, height-50, "  Retry  ", "blue", "orange");
-            var backButtonFromLoseScreen = new Button(60, height-125, "  Back  ", "blue", "orange");
-             var gameSpeedButton = new Button(width/2, height/2, "  Game Speed  ", "blue", "orange");
+            var retryButton = new Button(60, height-125, "  Retry  ", "blue", "orange");
+            var backButtonFromLoseScreen = new Button(60, height-50, "  Back  ", "blue", "orange");
+            var nextButton = new Button(60, height - 200, "  Next  ", "blue", "orange");
+            var gameSpeedButton = new Button(width/2, height/2, "  Game Speed  ", "blue", "orange");
             var numberOfBlocksButton = new Button(width/2, height/2 + 100, "  Number Of Blocks  ", "blue", "orange");
             
-            var levelOneButton = createLevelButton("1", width/2 - 70, height/2 - 70);
-            var levelTwoButton = createLevelButton("2", width/2, height/2 - 70);
-            var levelThreeButton = createLevelButton("3", width/2 + 70, height/2 - 70);
-            var levelFourButton = createLevelButton("4", width/2 - 70, height/2);
-            var levelFiveButton = createLevelButton("5", width/2, height/2);
-            var levelSixButton = createLevelButton("6", width/2 + 70, height/2);
-            var levelSevenButton = createLevelButton("7", width/2 - 70, height/2 + 70);
-            var levelEightButton = createLevelButton("8", width/2, height/2 + 70);
-            var levelNineButton = createLevelButton("9", width/2 + 70, height/2 + 70);
             
-            // Game variables
+            
+            
+            var Coin = function(x, y, r) {
+                this.x = x;
+                this.y = y;
+                this.r = r;
+                this.draw = function() {
+                    ctx.save();
+                    ctx.fillStyle = "orange";
+                    circle(this.x, this.y, this.r, true);
+                    ctx.restore();
+                };
+            };
+            
+            var coin = new Coin(rangedRandom(20, width - 20), rangedRandom(40, height - 20), 10);
+            var moveCoin = function() {
+                score += 1;
+                coin.x = rangedRandom(20, width - 20);
+                coin.y = rangedRandom(40, height - 20);
+            };
+            
+            
+            var redBlockXMoveRate = {
+                    min: -5,
+                    max: 5,
+            };
+            var redBlockYMoveRate = {
+                min: -5,
+                max: 5,
+            };
             var redBlocks = [];
             for(var i = 0; i < numberOfBlocks; i++) {
-                redBlocks.push(new Vector(-50, height));
+                redBlocks.push(new Vector(width/2, height/2, rangedRandom(redBlockXMoveRate.min, redBlockXMoveRate.max), rangedRandom(redBlockYMoveRate.min, redBlockYMoveRate.max)));
             };
-            var highScores = [
-                ["Happy Snowman", 134, 5, 20],
-                ["ABoss", 23, 5],
-                ["Henwill8", 72, 5],
-                ["Vader2003", 100, 5]
+            
+            var levelButtons = [
+                createLevelButton("1", width/2 - 70, height/2 - 70),
+                createLevelButton("2", width/2, height/2 - 70),
+                createLevelButton("3", width/2 + 70, height/2 - 70),
+                createLevelButton("4", width/2 - 70, height/2),
+                createLevelButton("5", width/2, height/2),
+                createLevelButton("6", width/2 + 70, height/2),
+                createLevelButton("7", width/2 - 70, height/2 + 70),
+                createLevelButton("8", width/2, height/2 + 70),
+                createLevelButton("9", width/2 + 70, height/2 + 70)
             ];
-            highScores.sort(function(a, b) {return b[1] - a[1]});
+            
+            var level = 0;
+            
+            var MakeLevel = function(levelNum, maxBlockSpeed, nBlocks, coinGoal) {
+                this.maxBlockSpeed = maxBlockSpeed;
+                this.nBlocks = nBlocks;
+                this.coinGoal = coinGoal;
+            };
+            
+            var levels = [
+                new MakeLevel(1, 0.5, 0.5, 5),
+                new MakeLevel(2, 1, 1, 15),
+                new MakeLevel(3, 1.25, 1.25, 30),
+                new MakeLevel(4, 1.25, 1.25, 50),
+                new MakeLevel(5, 1.5, 1.5, 45),
+                new MakeLevel(6, 1.5, 2, 40),
+                new MakeLevel(7, 2.5, 1.25, 30),
+                new MakeLevel(8, 3, 1, 50),
+                new MakeLevel(9, 1, 3, 50),
+            ];
+            
+            var changeLevel = function(newLevel) {
+                seconds = 0;
+                level = newLevel;
+                redBlockXMoveRate.min = -(levels[level - 1].maxBlockSpeed * 5);
+                redBlockXMoveRate.max = levels[level - 1].maxBlockSpeed * 5;
+                redBlockYMoveRate.min = -(levels[level - 1].maxBlockSpeed * 5);
+                redBlockYMoveRate.max = levels[level - 1].maxBlockSpeed * 5;
+                console.log(Math.round(initialNumberOfBlocks * levels[level - 1].nBlocks));
+                numberOfBlocks = Math.round(initialNumberOfBlocks * levels[level - 1].nBlocks);
+                player.x = width/2;
+                player.y = height - 40;
+                
+                redBlocks = [];
+                for(var i = 0; i < numberOfBlocks; i++) {
+                    redBlocks.push(new Vector(width/2, height/2, rangedRandom(redBlockXMoveRate.min, redBlockXMoveRate.max), rangedRandom(redBlockYMoveRate.min, redBlockYMoveRate.max)));
+                };
+                
+                score = 0;
+                scene = "play";
+            };
+            
+            
+            
+            var levelsCompleted = [];
+            var tempLevelsCompleted = localStorage.getItem("levelsCompleted");
+            if(tempLevelsCompleted === null || tempLevelsCompleted === undefined) {
+                for(i = 0; i < 9; i++) {
+                    levelsCompleted.push(false);
+                };
+                localStorage.setItem("levelsCompleted", levelsCompleted.toString());
+                
+            } else {
+                levelsCompleted = tempLevelsCompleted.split(",");
+                for(i = 0; i < levelsCompleted.length; i++) {
+                    if(levelsCompleted[i] === "true") {
+                        levelsCompleted[i] = true;
+                    } else if(levelsCompleted[i] === "false") {
+                        levelsCompleted[i] = false;
+                    };
+                };
+            };
+            
             var scene = "logo";
             var now = new Date().getTime();
             var score = 0;
             var keysPressed = [];
             var player = {
                 x: width/2,
+                y: height - 40,
                 draw: function() {
                     ctx.save();
                     ctx.fillStyle = "blue";
-                    ctx.fillRect(this.x-40, height-40, 40, 40);
+                    ctx.fillRect(this.x-40, this.y, 40, 40);
                     ctx.restore();
                 },
             };
             
-            var level = 0;
-            var levelOne = function() {
-                level = 1;
-                gameSpeed = 3;
-                numberOfBlocks = initialNumberOfBlocks * 0.7;
-                scene = "play";
-            };
-            var levelTwo = function() {
-                level = 2;
-                gameSpeed = 4;
-                numberOfBlocks = initialNumberOfBlocks;
-                scene = "play";
-            };
-            var levelThree = function() {
-                level = 3;
-                gameSpeed = 6;
-                numberOfBlocks = initialNumberOfBlocks;
-                scene = "play";
-            };
-            var levelFour = function() {
-                level = 4;
-                gameSpeed = 6;
-                numberOfBlocks = initialNumberOfBlocks * 1.25;
-                scene = "play";
-            };
-            var levelFive = function() {
-                level = 5;
-                gameSpeed = 8;
-                numberOfBlocks = initialNumberOfBlocks;
-                scene = "play";
-            };
-            var levelSix = function() {
-                level = 6;
-                gameSpeed = 8;
-                numberOfBlocks = initialNumberOfBlocks * 1.25;
-                scene = "play";
-            };
-            var levelSeven = function() {
-                level = 7;
-                gameSpeed = 8;
-                numberOfBlocks = initialNumberOfBlocks * 1.5;
-                scene = "play";
-            };
-            var levelEight = function() {
-                level = 8;
-                gameSpeed = 10;
-                numberOfBlocks = initialNumberOfBlocks * 1.5;
-                scene = "play";
-            };
-            var levelNine = function() {
-                level = 9;
-                gameSpeed = 12;
-                numberOfBlocks = initialNumberOfBlocks * 2;
-                scene = "play";
-            }
             
+            
+            
+        
+            
+            
+            
+            
+            var backgroundImage = new Image();
+            backgroundImage.src = "StarsExperimentWithPlanet.png";
+            
+            var backgroundImageWithoutPlanet = new Image();
+            backgroundImageWithoutPlanet.src = "StarsExperiment.png";
+            
+            var checkmarkIcon = new Image();
+            checkmarkIcon.src = "Checkmarkicon.png";
             // Scenes
             var logoProgress = 0;
+            var seconds = 0;
             var scenes = {
                 logo: function() {
+                    
                     ctx.save();
                     setBackgroundColor(0, 0, 0);
                     ctx.font = "40px serif";
@@ -296,11 +334,16 @@
                     logoProgress++;
                     if(logoProgress > 120) {
                         scene = "menu";
-                    }
+                    };
                     ctx.restore();
                 },
                 menu: function() {
-                    setBackgroundColor(color(255, 69, 69));
+                    setBackgroundColor(color(102, 0, 255));
+                    try {
+                        ctx.drawImage(backgroundImage, 0, 0, width, height);
+                    } catch(err) {
+                        console.log(err.message);
+                    };
                     ctx.save();
                     ctx.fillStyle = "black";
                     ctx.textAlign = "center";
@@ -311,106 +354,196 @@
                         ctx.font = "30px cursive";
                         var titleTextX = 50;
                     };
-                    ctx.fillText("HTML Dodge Game", width/2, titleTextX);
+                    ctx.fillText("Dodge 'n Collect", width/2, titleTextX);
                     ctx.save();
                     playButton.draw();
                     howButton.draw();
-                    gameControlsButton.draw();
+                    //gameControlsButton.draw();
                     levelsButton.draw();
                     ctx.restore();
                 },
                 play: function() {
+                    if (new Date().getTime() - now >= 1000) {
+                        seconds += 1;
+                        now = new Date().getTime();
+                    }
                     ctx.save();
-                    setBackgroundColor(color(0, 0, 0));
+                    if(darkMode === true) {
+                        setBackgroundColor(color(0, 0, 0));
+                    } else {
+                        setBackgroundColor(color(255, 255, 255));
+                    };
+                    try {
+                       ctx.drawImage(backgroundImageWithoutPlanet, 0, 0, width, height);
+                    } catch(err) {
+                        console.log(err.message);
+                    };
+                    
+                    coin.draw();
                     ctx.textAlign = "center";
                     ctx.fillStyle = "white";
-                    var textSize = initialNumberOfBlocks * 2.5;
+                    var textSize = canvas.width / 100 * 4;
                     if(textSize > 30) {textSize = 30};
                     ctx.font = textSize + "px sans-serif";
-                    ctx.fillText(Math.round(score), width/2, 1.5 * textSize);
+                    if(level === 0) {
+                        ctx.fillText("Score: " + Math.round(score) + "     Seconds: " + seconds, width/2, 1.5 * textSize);
+                    } else {
+                        ctx.fillText("Score: " + Math.round(score) + " / " + levels[level - 1].coinGoal + "     Seconds: " + seconds, width/2, 1.5 * textSize);
+                    }
                     ctx.fillStyle = "black";
                     ctx.save();
                     ctx.font = "30px sans-serif";
                     for(var i = 0; i < redBlocks.length; i++) {
                         ctx.save();
                         ctx.fillStyle = "red";
-                        redBlocks[i].y += gameSpeed;
-                        if(redBlocks[i].y > height) {
-                            redBlocks[i].x = rangedRandom(0, width);
-                            redBlocks[i].y = rangedRandom(-500, 0);
-                        }
-                        if(redBlocks[i].y >= height-40 && redBlocks[i].x >= player.x-40 && redBlocks[i].y <= height && redBlocks[i].x <= player.x+40) {
+                        
+                        redBlocks[i].x += redBlocks[i].xMoveRate;
+                        redBlocks[i].y += redBlocks[i].yMoveRate;
+                        
+                        // Handling red block collisions with the wall and adjusting the x/y move rate
+                        if(redBlocks[i].y >= height) {
+                            redBlocks[i].yMoveRate = rangedRandom(redBlockYMoveRate.min, 0);
+                        } else if(redBlocks[i].y <= 40) {
+                            redBlocks[i].yMoveRate = rangedRandom(0, redBlockYMoveRate.max);
+                        };
+                        if(redBlocks[i].x >= width) {
+                            redBlocks[i].xMoveRate = rangedRandom(redBlockXMoveRate.min, 0);
+                        } else if(redBlocks[i].x <= 40) {
+                            redBlocks[i].xMoveRate = rangedRandom(0, redBlockXMoveRate.max);
+                        };
+                        
+                        if(level != 0) {
+                            if(score === levels[level - 1].coinGoal) {
+                                scene = "lose";
+                            };
+                        };
+                        
+        
+                        if(redBlocks[i].x >= player.x-40 && redBlocks[i].x <= player.x+40 && redBlocks[i].y >= player.y && redBlocks[i].y <= player.y + 80) {
                             scene = "lose";
                         };
                         
                         ctx.fillRect(redBlocks[i].x-40, redBlocks[i].y-40, 40, 40);
+                        
+                        // Handling player and coin collisions
+                        var distX = Math.abs(coin.x - player.x-(40/2-40));
+                        var distY = Math.abs(coin.y - player.y-40/2);
+                        var dx=distX-40/2;
+                        var dy=distY-(40/2);
+                        
+                        if (distX > (40/2 + coin.r)) {}
+                        if (distY > ((40/2-40) + coin.r)) {}
+
+                        if (distX <= (40/2) && distY <= (40/2) || dx*dx+dy*dy<=(coin.r*coin.r)) { moveCoin();}
                         ctx.restore();
-                    }
-                    
-                    if(keysPressed[37]) {
-                        if(player.x < 0) {
-                            player.x = width;
-                        }
-                        else {
-                            player.x -= gameSpeed;
-                        }
-                    }
-                    if(keysPressed[39]) {
-                        if(player.x > width) {
-                            player.x = 40;
-                        } else {
-                            player.x += gameSpeed;
-                        }
                     };
                     
-                    if(new Date().getTime() >= now + 1000 * initialNumberOfBlocks / numberOfBlocks) {
-                        now = new Date().getTime();
-                        score += gameSpeed/6;
-                    }
+                    // Handling arrow keys and block movement
+                    if(keysPressed[37] || keysPressed[65]) {
+                        if(player.x > 40) {
+                            player.x -= 7;
+                        };
+                    };
+                    if(keysPressed[39] || keysPressed[68]) {
+                        if(player.x < width) {
+                            player.x += 7;
+                        }
+                    };
+                    if(keysPressed[38] || keysPressed[87]) {
+                        if(player.y > 0) {
+                            player.y -= 7;
+                        };
+                    };
+                    if(keysPressed[40] || keysPressed[83]) {
+                        if(player.y < height - 40) {
+                            player.y += 7;
+                        };
+                        
+                    };
+                    
                     player.draw();
                     ctx.restore();
                 },
                 how: function() {
                     ctx.save();
+                    setBackgroundColor(color(0, 0, 0));
+                    try {
+                       ctx.drawImage(backgroundImageWithoutPlanet, 0, 0, width, height);
+                    } catch(err) {
+                        console.log(err.message);
+                    };
+                    
                     ctx.textAlign = "center";
-                    var fontSize = initialNumberOfBlocks*2;
-                    if(fontSize > 35) {fontSize = 35};
+                    var fontSize = canvas.width / 100 * 4;
+                    if(fontSize >= 50) {fontSize = 50};
                     ctx.font = fontSize + "px sans-serif";
-                    setBackgroundColor(color(255, 69, 69));
-                    ctx.fillStyle = "black";
-                    ctx.fillText("You are the blue block. Move", width/2, height/2);
-                    ctx.fillText("around with the arrow keys", width/2, height/2+fontSize*1.25);
-                    ctx.fillText("or mouse on computer", width/2, height/2+fontSize*2.5);
-                    ctx.fillText("or with your finger on mobile", width/2, height/2+fontSize*3.75);
-                    ctx.fillText("and try to avoid the red blocks.", width/2, height/2+fontSize*5);
+                    ctx.fillStyle = "white";
+                    ctx.fillText("You are the blue block. Move", width/2, height/2 - (fontSize * 2.5));
+                    ctx.fillText("around with the arrow keys", width/2, height/2 - (fontSize * 1.25));
+                    ctx.fillText("or drag your mouse or finger", width/2, height/2);
+                    ctx.fillText("and dodge the red blocks", width/2, height/2+fontSize*1.25);
+                    ctx.fillText("and collect the yellow coins.", width/2, height/2+fontSize*2.5);
                     ctx.save();
                     backButton.draw();
                     ctx.restore();
                 },
                 lose: function() {
-                    ctx.save();
                     ctx.textAlign = "center";
-                    setBackgroundColor(color(255, 69, 69));
-                    var fontSize = initialNumberOfBlocks*2;
-                    if(fontSize > 35) {fontSize = 35};
+                    setBackgroundColor(color(0, 0, 0));
+                    try {
+                       ctx.drawImage(backgroundImageWithoutPlanet, 0, 0, width, height);
+                    } catch(err) {
+                        console.log(err.message);
+                    };
+                    ctx.save();
+                    var fontSize = canvas.width / 100 * 4;
+                    if(fontSize >= 50) {fontSize = 50};
                     ctx.font = fontSize + "px sans-serif";
+                    ctx.fillStyle = "white";
                     ctx.save();
                     ctx.translate(0, -150);
-                    ctx.fillText("A red block fell on your head and", width/2, height/2);
-                    ctx.fillText("you never wanted to dodge red blocks", width/2, height/2 + fontSize*1.25);
-                    ctx.fillText("again. At least not until you clicked", width/2, height/2+fontSize*2.5);
-                    ctx.fillText("that retry button...", width/2, height/2+fontSize*3.75);
-                    ctx.fillText("Your score: " + Math.round(score), width/2, height/2+fontSize*5);
-                    if(level === 0) {
-                        ctx.fillText("You played the game at a speed of " + gameSpeed, width/2, height/2+fontSize*6.25);
-                        ctx.fillText(" and with " + numberOfBlocks + " blocks.", width/2, height/2+fontSize*7.75);
+                    ctx.fillText("Congratulations!", width/2, height/2);
+                    if(score === 1){
+                        ctx.fillText("You got " + score + " point in " + seconds + " seconds!", width/2, height/2 + (fontSize * 1.25));
                     } else {
-                        ctx.fillText("You played level " + level + ".", width/2, height/2+fontSize*6.25);
-                    }
+                        ctx.fillText("You got " + score + " points in " + seconds + " seconds!", width/2, height/2 + (fontSize * 1.25));
+                    };
+                    
+                    if(level === 0) {
+                        ctx.fillText("Click the retry button to play again.", width/2, height/2+fontSize*2.5);
+                    } else {
+                        if(score >= levels[level - 1].coinGoal) {
+                            ctx.fillText("You passed level " + level + "!", width/2, height/2+fontSize*2.5);
+                            ctx.fillText("Click the retry button to play again.", width/2, height/2+fontSize*3.75);
+                            levelsCompleted[level - 1] = true;
+                            localStorage.setItem("levelsCompleted", levelsCompleted.toString());
+                            console.log(localStorage.getItem("levelsCompleted"))
+                        } else {
+                            ctx.fillText("You failed level " + level + ".", width/2, height/2+fontSize*2.5);
+                            ctx.fillText("Click the retry button to play again.", width/2, height/2+fontSize*3.75);
+                        };
+                    };
+                    
                     ctx.restore();
                     retryButton.draw();
                     backButtonFromLoseScreen.draw();
+                    if(level != 0 && level < 9 && score >= levels[level - 1].coinGoal) {
+                        nextButton.draw();
+                    };
                     ctx.restore();
+                    if(keysPressed[82]) {
+                        score = 0;
+                        seconds = 0;
+                        player.x = width/2;
+                        player.y = height - 40;
+                        for(var i = 0; i < redBlocks.length; i++) {
+                            redBlocks[i].x = width/2;
+                            redBlocks[i].y = height/2;
+                            redBlocks[i].xMoveRate = rangedRandom(redBlockXMoveRate.min, redBlockXMoveRate.max);
+                            redBlocks[i].yMoveRate = rangedRandom(redBlockYMoveRate.min, redBlockYMoveRate.max);
+                        };
+                        scene = "play";
+                    };
                 },
                 gameControls: function() {
                     ctx.fillStyle = "blue"; ctx.font = "30px sans-serif"; ctx.fillText(numberOfBlocks, 100, 100);
@@ -422,24 +555,26 @@
                     ctx.restore();
                     
                 },
-                levelsPage1: function() {
-                    setBackgroundColor(color(255, 69, 69));
-                    levelOneButton.draw();
-                    levelTwoButton.draw();
-                    levelThreeButton.draw();
-                    levelFourButton.draw();
-                    levelFiveButton.draw();
-                    levelSixButton.draw();
-                    levelSevenButton.draw();
-                    levelEightButton.draw();
-                    levelNineButton.draw();
+                levels: function() {
+                    setBackgroundColor(color(0, 0, 0));
+                    try {
+                       ctx.drawImage(backgroundImageWithoutPlanet, 0, 0, width, height);
+                    } catch(err) {
+                        console.log(err.message);
+                    };
+                    
+                    for(i = 0; i < levelButtons.length; i++) {
+                        levelButtons[i].draw();
+                    };
+                    
+                    for(i = 0; i < levelsCompleted.length; i++) {
+                        if(levelsCompleted[i] === true) {
+                            ctx.drawImage(checkmarkIcon, levelButtons[i].x - 10, levelButtons[i].y - 5, 20, 20);
+                        }
+                    }
                     backButton.draw();
                 },
-                levelsPage2: function() {
-                    
-                },
             };
-            
             
             // Code to be run 60 times per seconds(Or as many FPS as the device allows)
             var draw = function() {
@@ -452,26 +587,48 @@
             //Handling Mouse controls
             canvas.addEventListener("mousedown", function() {
                 mouseIsDown = true;
+                if(scene === "play") {
+                    player.x = event.clientX;
+                    player.y = event.clientY;
+                }
             });
             canvas.addEventListener("mouseup", function() {
                 mouseIsDown = false;
             });
             canvas.addEventListener("mousemove", function(event) {
-                if(mouseIsDown) {
+                if(mouseIsDown && scene === "play") {
                     player.x = event.clientX;
+                    player.y = event.clientY - 20;
                 };
             });
             
+            var touches = null;
             //Handling Touch Events(experimental)
             canvas.addEventListener("touchstart", function(event) {
+                touches = event.changedTouches;
                 if (scene === "play") {
-                    player.x = event.changedTouches[0].clientX;
+                    if(player.x > 20 && player.x < width && player.y > 0 && player.y < height - 20) {
+                        player.x = touches[0].clientX;
+                        player.y = touches[0].clientY - 20;
+                    } else if(touches[0].clientX >= 20 && touches[0].clientX < width && touches[0].clientY > 0 && touches[0].clientY < height - 20) {
+                        player.x = touches[0].clientX;
+                        player.y = touches[0].clientY - 20;
+                    };
+                    
                     event.preventDefault();
                 };
             });
             canvas.addEventListener("touchmove", function(event) {
+                touches = event.changedTouches;
                 if (scene === "play") {
-                    player.x = event.changedTouches[0].clientX;
+                    
+                    if(player.x > 20 && player.x < width && player.y > 0 && player.y < height - 20) {
+                        player.x = touches[0].clientX;
+                        player.y = touches[0].clientY - 20;
+                    } else if(touches[0].clientX >= 20 && touches[0].clientX < width && touches[0].clientY > 0 && touches[0].clientY < height - 20) {
+                        player.x = touches[0].clientX;
+                        player.y = touches[0].clientY - 20;
+                    };
                     event.preventDefault();
                 };
             });
@@ -482,13 +639,19 @@
                     if(scene === "menu") {
                         if(playButton.mouseIsInside(event)) {
                             scene = "play";
+                            player.x = width/2;
+                            player.y = height - 40;
+                            seconds = 0;
+                            score = 0;
+                            numberOfBlocks = initialNumberOfBlocks;
+                            
                         } else if(howButton.mouseIsInside(event)) {
                             scene = "how";
                         } else if(gameControlsButton.mouseIsInside(event)) {
-                            scene = "gameControls"
+                            
                         } else if(levelsButton.mouseIsInside(event)) {
-                            scene = "levelsPage1";      
-                        }
+                            scene = "levels";
+                        };
                     } else if(scene === "how") {
                         if(backButton.mouseIsInside(event)) {
                             scene = "menu";
@@ -496,27 +659,38 @@
                     } else if(scene === "lose") {
                         if(retryButton.mouseIsInside(event)) {
                             score = 0;
+                            seconds = 0;
                             player.x = width/2;
+                            player.y = height - 40;
                             for(var i = 0; i < redBlocks.length; i++) {
-                                redBlocks[i].x = -50;
-                                redBlocks[i].y = height;
-                            }
+                                redBlocks[i].x = width/2;
+                                redBlocks[i].y = height/2;
+                                redBlocks[i].xMoveRate = rangedRandom(redBlockXMoveRate.min, redBlockXMoveRate.max);
+                                redBlocks[i].yMoveRate = rangedRandom(redBlockYMoveRate.min, redBlockYMoveRate.max);
+                            };
                             scene = "play";
                         } else if(backButtonFromLoseScreen.mouseIsInside(event)) {
                             score = 0;
+                            seconds = 0;
                             if(level != 0) {
-                                gameSpeed = 6;
-                                numberOfBlocks = initialNumberOfBlocks;
+                                gameSpeed = 5;
                                 level = 0;
-                            }
-                            gameSpeed = 6;
+                            };
                             numberOfBlocks = initialNumberOfBlocks;
+                            
                             player.x = width/2;
-                            for(var i = 0; i < redBlocks.length; i++) {
-                                redBlocks[i].x = -50;
-                                redBlocks[i].y = height;
-                            }
+                            player.y = height-40;
+                            redBlocks = [];
+                            
+                            redBlockXMoveRate.min = -5; redBlockXMoveRate.max = 5;
+                            redBlockYMoveRate.min = -5; redBlockYMoveRate.max = 5;
+                            for(var i = 0; i < numberOfBlocks; i++) {
+                                redBlocks.push(new Vector(width/2, height/2, rangedRandom(redBlockXMoveRate.min, redBlockXMoveRate.max), rangedRandom(redBlockYMoveRate.min, redBlockYMoveRate.max)));
+                            };
+                    
                             scene = "menu";
+                        } else if(nextButton.mouseIsInside(event) && level != 0 && level < 9 && score >= levels[level - 1].coinGoal) {
+                            changeLevel(level + 1);
                         }
                     } else if (scene === "gameControls") {
                         if(backButton.mouseIsInside(event)) {
@@ -526,29 +700,16 @@
                         } else if (numberOfBlocksButton.mouseIsInside(event)) {
                             setNumberOfBlocks();
                         }
-                    }  else if(scene === "levelsPage1") {
+                    }  else if(scene === "levels") {
                         if(backButton.mouseIsInside(event)) {
                             scene = "menu";
                         };
-                        if(levelOneButton.mouseIsInside(event)) {
-                            levelOne();
-                        } else if(levelTwoButton.mouseIsInside(event)) {
-                            levelTwo();
-                        } else if(levelThreeButton.mouseIsInside(event)) {
-                            levelThree();
-                        } else if(levelFourButton.mouseIsInside(event)) {
-                            levelFour();
-                        } else if(levelFiveButton.mouseIsInside(event)) {
-                            levelFive();
-                        } else if(levelSixButton.mouseIsInside(event)) {
-                            levelSix();
-                        } else if(levelSevenButton.mouseIsInside(event)) {
-                            levelSeven();
-                        } else if(levelEightButton.mouseIsInside(event)) {
-                            levelEight();
-                        } else if(levelNineButton.mouseIsInside(event)) {
-                            levelNine();
+                        for(i = 0; i < levelButtons.length; i++) {
+                            if(levelButtons[i].mouseIsInside(event)) {
+                                changeLevel(Number(levelButtons[i].txt));
+                            };
                         };
+                        
                     };
             });
             
@@ -557,12 +718,62 @@
             // Handling key presses
             document.addEventListener("keydown", function(event) {
                 keysPressed[event.keyCode] = true;
-                if (event.keyCode === 39 || event.keyCode === 37) {
+                if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 82 || event.keyCode === 83 || event.keyCode === 87 || event.keyCode === 65 || event.keyCode === 68) {
                     event.preventDefault();
                 };
             });
             document.addEventListener("keyup", function(event) {
                 keysPressed[event.keyCode] = false;
+            });
+            
+            // Resizing appropriately for resizing windows
+            window.addEventListener("resize", function(event) {
+                initialNumberOfBlocks = Math.round(canvas.width/100 / 2);
+                if(level === 0) {
+                    numberOfBlocks = initialNumberOfBlocks;
+                } else {
+                    numberOfBlocks = initialNumberOfBlocks * levels[level - 1].nBlocks;
+                };
+                
+                redBlocks = [];
+                for(var i = 0; i < numberOfBlocks; i++) {
+                    redBlocks.push(new Vector(width/2, height/2, rangedRandom(redBlockXMoveRate.min, redBlockXMoveRate.max), rangedRandom(redBlockYMoveRate.min, redBlockYMoveRate.max)));
+                };
+                
+                for(i = 0; i < levelButtons.length; i++) {
+                    // Adjusting the x position of the buttons on window resize
+                    if(i === 0 || i === 3 || i === 6) { // for level buttons 1, 4, and 7
+                        levelButtons[i].x = width / 2 - 70;
+                    } else if(i === 1 || i === 4 || i === 7) { // for level buttons 2, 5, 8
+                        levelButtons[i].x = width / 2;
+                    } else if(i === 2 || i === 5 || i === 8) { // level buttons 3, 6, 9
+                        levelButtons[i].x = width/ 2 + 70;
+                    };
+                    // Adjusting the y position of the level buttons on window resize
+                    if(i < 3) { // for level buttons 1, 2, 3
+                        levelButtons[i].y = height / 2 - 70;
+                    } else if(i >= 3 && i < 6) { // for level buttons 4, 5, 6
+                        levelButtons[i].y = height / 2;
+                    } else if(i >= 6 && i < 9) { // for level buttons 7, 8, 9
+                        levelButtons[i].y = height / 2 + 70;
+                    };
+                };
+                
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                width = canvas.width;
+                height = canvas.height;
+                playButton.x = width/2; playButton.y = height/2 - 110;
+                howButton.x = width/2; howButton.y = height/2 + 90;
+                levelsButton.x = width/2; levelsButton.y = height/2 - 10;
+                backButton.x = 60; backButton.y = height - 50;
+                retryButton.x = 60; retryButton.y = height - 125;
+                backButtonFromLoseScreen.x = 60; backButtonFromLoseScreen.y = height - 50;
+                nextButton.x = 60; nextButton.y = height - 200;
+                coin.x = rangedRandom(20, width - 20);
+                coin.y = rangedRandom(20, height - 20);
+                player.x = width/2;
+                player.y = height - 40;
             });
         </script>
     </body>
